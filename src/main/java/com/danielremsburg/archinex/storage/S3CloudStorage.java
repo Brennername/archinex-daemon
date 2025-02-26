@@ -3,6 +3,7 @@ package com.danielremsburg.archinex.storage;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.StorageClass;
@@ -25,13 +26,17 @@ public class S3CloudStorage implements CloudStorage {
     private final String bucketName;
     private final String archiveBucketName;
 
-    public S3CloudStorage(AmazonS3 s3Client, String bucketName, String archiveBucketName) {
-        this.s3Client = s3Client;
-        this.bucketName = bucketName;
-        this.archiveBucketName = archiveBucketName;
+    public S3CloudStorage(ArchinexConfig config) {
+        // Initialize AmazonS3 client
+        this.s3Client = AmazonS3ClientBuilder.standard()
+                .withRegion(config.getString("storage.cloud.region")) // Specify region from config
+                .build();
+
+        // Get bucket names and other configurations from ArchinexConfig
+        this.bucketName = config.getCloudStorageBucket();
+        this.archiveBucketName = config.getString("storage.cloud.archiveBucket"); // Optional archive bucket
     }
 
-  
     @Override
     public void store(UUID uuid, byte[] data, Map<String, String> metadata) throws IOException {
         try (InputStream inputStream = new ByteArrayInputStream(data)) {
@@ -85,7 +90,7 @@ public class S3CloudStorage implements CloudStorage {
         try {
             String key = uuid.toString();
 
-            if (archiveBucketName != null) {
+            if (archiveBucketName != null && !archiveBucketName.isEmpty()) {
                 // Copy to archive bucket and delete from original bucket
                 s3Client.copyObject(bucketName, key, archiveBucketName, key);
                 s3Client.deleteObject(bucketName, key);
