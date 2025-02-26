@@ -4,7 +4,7 @@ import com.danielremsburg.archinex.cache.Cache;
 import com.danielremsburg.archinex.metadata.FileMetadata;
 import com.danielremsburg.archinex.metadata.MetadataStore;
 import com.danielremsburg.archinex.metadata.MetadataStoreException;
-import com.danielremsburg.archinex.storage.StorageSystem;
+import com.danielremsburg.archinex.storage.StorageFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.UUID;
 
 public class BasicRetentionPolicy implements RetentionPolicy {
 
@@ -23,15 +22,14 @@ public class BasicRetentionPolicy implements RetentionPolicy {
     private final List<RetentionRule> rules;
     private final MetadataStore metadataStore;
     private final Cache cache;
-    private final StorageSystem storageSystem;
 
-    public BasicRetentionPolicy(String name, String description, List<RetentionRule> rules, MetadataStore metadataStore, Cache cache, StorageSystem storageSystem) {
+    // Constructor adjusted: removed storageSystem and used StorageFactory directly in methods
+    public BasicRetentionPolicy(String name, String description, List<RetentionRule> rules, MetadataStore metadataStore, Cache cache) {
         this.name = name;
         this.description = description;
         this.rules = rules;
         this.metadataStore = metadataStore;
         this.cache = cache;
-        this.storageSystem = storageSystem;
     }
 
     @Override
@@ -53,15 +51,17 @@ public class BasicRetentionPolicy implements RetentionPolicy {
                     RetentionAction action = rule.getAction();
                     switch (action) {
                         case ARCHIVE:
-                            storageSystem.archive(metadata.getUuid());
+                            // Use StorageFactory to get the appropriate storage system and archive the file
+                            StorageFactory.createStorage().archive(metadata.getUuid());
                             break;
                         case DELETE:
                         default:
-                            storageSystem.delete(metadata.getUuid());
+                            // Use StorageFactory to get the appropriate storage system and delete the file
+                            StorageFactory.createStorage().delete(metadata.getUuid());
                             break;
                     }
-                    metadataStore.delete(metadata.getUuid());
-                    cache.remove(metadata.getUuid());
+                    metadataStore.delete(metadata.getUuid()); // Remove metadata from store
+                    cache.remove(metadata.getUuid()); // Remove file from cache
                     logger.info("File {} {}d", metadata.getUuid(), action.toString().toLowerCase());
                     break;
                 }

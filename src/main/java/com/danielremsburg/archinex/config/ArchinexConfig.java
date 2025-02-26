@@ -129,7 +129,6 @@ public class ArchinexConfig {
         return current;
     }
 
-
     public String getStorageType() {
         return getStringOrDefault("storage.type", "local");
     }
@@ -201,6 +200,7 @@ public class ArchinexConfig {
     public int getApiPort() {
         return getIntOrDefault("api.port", 9876);
     }
+    
     public String getApiHost() {
         return getStringOrDefault("api.host", "localhost");
     }
@@ -214,5 +214,4 @@ public class ArchinexConfig {
         JsonElement element = getJsonElement(path);
         return element != null && !element.isJsonNull() ? element.getAsInt() : defaultValue;
     }
-
 }

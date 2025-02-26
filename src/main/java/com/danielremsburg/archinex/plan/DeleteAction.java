@@ -1,6 +1,6 @@
 package com.danielremsburg.archinex.plan;
 
-import com.danielremsburg.archinex.storage.StorageSystem;
+import com.danielremsburg.archinex.storage.Storage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,16 +12,16 @@ public class DeleteAction implements Action {
 
     private static final Logger logger = LoggerFactory.getLogger(DeleteAction.class);
 
-    private final StorageSystem storageSystem;
+    private final Storage storage;
 
-    public DeleteAction(StorageSystem storageSystem) {
-        this.storageSystem = storageSystem;
+    public DeleteAction(Storage storage) {
+        this.storage = storage;
     }
 
     @Override
     public void execute(UUID uuid, byte[] data, Map<String, String> metadata) throws IOException {
         try {
-            storageSystem.delete(uuid);
+            storage.delete(uuid);
             logger.info("DeleteAction executed for UUID: {}", uuid);
         } catch (IOException e) {
             logger.error("Error deleting data for UUID: {}", uuid, e);

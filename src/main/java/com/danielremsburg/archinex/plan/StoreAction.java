@@ -1,6 +1,6 @@
 package com.danielremsburg.archinex.plan;
 
-import com.danielremsburg.archinex.storage.StorageSystem;
+import com.danielremsburg.archinex.storage.Storage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,20 +12,20 @@ public class StoreAction implements Action {
 
     private static final Logger logger = LoggerFactory.getLogger(StoreAction.class);
 
-    private final StorageSystem storageSystem;
+    private final Storage storage;
 
-    public StoreAction(StorageSystem storageSystem) {
-        this.storageSystem = storageSystem;
+    public StoreAction(Storage storage) {
+        this.storage = storage;
     }
 
     @Override
     public void execute(UUID uuid, byte[] data, Map<String, String> metadata) throws IOException {
         try {
-            storageSystem.store(uuid, data); // Store the data
+            storage.store(uuid, data, metadata);
             logger.info("StoreAction executed for UUID: {}", uuid);
         } catch (IOException e) {
             logger.error("Error storing data for UUID: {}", uuid, e);
-            throw e; // Re-throw the exception to be handled by the planner
+            throw e;
         }
     }
 }

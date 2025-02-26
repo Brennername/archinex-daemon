@@ -7,7 +7,7 @@ import com.danielremsburg.archinex.metadata.FileMetadata;
 import com.danielremsburg.archinex.metadata.MetadataStore;
 import com.danielremsburg.archinex.metadata.MetadataStoreException;
 import com.danielremsburg.archinex.retention.RetentionPolicy;
-import com.danielremsburg.archinex.storage.StorageSystem;
+import com.danielremsburg.archinex.storage.Storage;
 import com.danielremsburg.archinex.plan.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +23,7 @@ public class Planner {
     private static final Logger logger = LoggerFactory.getLogger(Planner.class);
 
     private final ArchinexConfig config;
-    private final StorageSystem storageSystem;
+    private final Storage storage;
     private final MetadataStore metadataStore;
     private final Journal journal;
     private final RetentionPolicy retentionPolicy;
@@ -33,17 +33,17 @@ public class Planner {
     private final PlanExecutor planExecutor;
     private final DecisionMaker decisionMaker;
 
-    public Planner(ArchinexConfig config, StorageSystem storageSystem, MetadataStore metadataStore,
+    public Planner(ArchinexConfig config, Storage storage, MetadataStore metadataStore,
                    Journal journal, RetentionPolicy retentionPolicy, Cache cache, ExecutorService executorService) {
         this.config = config;
-        this.storageSystem = storageSystem;
+        this.storage = storage;
         this.metadataStore = metadataStore;
         this.journal = journal;
         this.retentionPolicy = retentionPolicy;
         this.cache = cache;
         this.executorService = executorService;
 
-        this.planFactory = new PlanFactory(storageSystem);
+        this.planFactory = new PlanFactory(storage);
         this.planExecutor = new PlanExecutor(executorService);
         this.decisionMaker = new DecisionMaker(planFactory, config);
     }
@@ -58,7 +58,12 @@ public class Planner {
             metadataStore.getAllFiles().forEach(fileMetadata -> {
                 if (retentionPolicy.shouldDelete(fileMetadata)) {
                     try {
-                        storageSystem.delete(fileMetadata.getUuid());
+                        // Use config to check if deletion should proceed
+                        boolean enableDelete = config.getBooleanOrDefault("storage.enableDelete", true);
+
+                        if (enableDelete) {
+                            storage.delete(fileMetadata.getUuid());
+                        }
                         metadataStore.delete(fileMetadata.getUuid());
                         journal.log("File deleted: " + fileMetadata.getUuid());
                         cache.remove(fileMetadata.getUuid());
@@ -75,7 +80,7 @@ public class Planner {
     }
 
     public void storeFile(String path, byte[] data, Map<String, String> metadata) throws IOException {
-        UUID uuid = java.util.UUID.randomUUID();
+        UUID uuid = UUID.randomUUID();
         FileMetadata fileMetadata = new FileMetadata(uuid, path, data.length);
         try {
             metadataStore.store(fileMetadata);
@@ -86,9 +91,18 @@ public class Planner {
 
         try {
             Plan plan = decisionMaker.choosePlan(fileMetadata);
-            planExecutor.executePlan(plan, uuid, data, metadata);
-            journal.log("File storage plan executed: " + path + " (UUID: " + uuid + ")");
-            cache.put(uuid, data);
+
+            // Submit storage tasks to executorService for concurrent execution
+            executorService.submit(() -> {
+                try {
+                    planExecutor.executePlan(plan, uuid, data, metadata);
+                    journal.log("File storage plan executed: " + path + " (UUID: " + uuid + ")");
+                    cache.put(uuid, data);
+                } catch (Exception e) {
+                    logger.error("Error executing storage plan for file: {}", path, e);
+                    journal.log("Error executing storage plan for file: " + path + " (UUID: " + uuid + ")");
+                }
+            });
         } catch (RuntimeException e) {
             try {
                 metadataStore.delete(uuid);
@@ -99,13 +113,14 @@ public class Planner {
         }
     }
 
-
     public byte[] retrieveFile(String uuid) throws IOException {
+        // Check cache first
         byte[] cachedData = cache.get(UUID.fromString(uuid));
         if (cachedData != null) {
             return cachedData;
         }
 
+        // If not cached, retrieve from metadata store
         FileMetadata metadata;
         try {
             metadata = metadataStore.get(UUID.fromString(uuid));
@@ -120,23 +135,38 @@ public class Planner {
 
         try {
             Plan plan = decisionMaker.choosePlan(metadata);
+
+            // Using AtomicReference to hold the retrieved data
             AtomicReference<byte[]> retrievedDataHolder = new AtomicReference<>();
-            plan.getActions().stream().filter(RetrieveAction.class::isInstance).findFirst().ifPresent(action -> {
+
+            // Execute retrieve action asynchronously using executorService
+            executorService.submit(() -> {
                 try {
-                    ((RetrieveAction) action).retrieveAndProcess(UUID.fromString(uuid), retrievedDataHolder::set);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    plan.getActions().stream()
+                            .filter(RetrieveAction.class::isInstance)
+                            .findFirst()
+                            .ifPresent(action -> {
+                                try {
+                                    ((RetrieveAction) action).retrieveAndProcess(UUID.fromString(uuid), retrievedDataHolder::set);
+                                } catch (IOException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            });
+                } catch (Exception e) {
+                    logger.error("Error retrieving data for UUID: " + uuid, e);
                 }
             });
-            byte[] retrievedData = retrievedDataHolder.get();
 
+            // Wait for data to be retrieved
+            byte[] retrievedData = retrievedDataHolder.get();
             if (retrievedData != null) {
                 cache.put(UUID.fromString(uuid), retrievedData);
             }
 
             return retrievedData;
         } catch (Exception e) {
-            throw e;
+            logger.error("Error retrieving file for UUID: " + uuid, e);
+            throw new IOException("Error retrieving file: " + uuid, e);
         }
     }
 }
