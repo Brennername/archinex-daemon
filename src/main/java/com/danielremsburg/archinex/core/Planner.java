@@ -82,6 +82,8 @@ public class Planner {
     public void storeFile(String path, byte[] data, Map<String, String> metadata) throws IOException {
         UUID uuid = UUID.randomUUID();
         FileMetadata fileMetadata = new FileMetadata(uuid, path, data.length);
+
+        // Store metadata
         try {
             metadataStore.store(fileMetadata);
         } catch (MetadataStoreException e) {
@@ -168,5 +170,21 @@ public class Planner {
             logger.error("Error retrieving file for UUID: " + uuid, e);
             throw new IOException("Error retrieving file: " + uuid, e);
         }
+    }
+
+    private String expandHomeDirectory(String path) {
+        if (path != null && path.startsWith("~")) {
+            return path.replace("~", System.getProperty("user.home"));
+        }
+        return path;
+    }
+
+    public String getStoragePath() {
+        String storagePath = config.getStringOrDefault("storage.local.path", "~/.archinex/data/storage");
+        return expandHomeDirectory(storagePath);
+    }
+
+    public boolean isDeleteEnabled() {
+        return config.getBooleanOrDefault("storage.enableDelete", true);
     }
 }

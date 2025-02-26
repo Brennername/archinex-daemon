@@ -1,7 +1,8 @@
 package com.danielremsburg.archinex.core;
 
 import com.danielremsburg.archinex.config.ArchinexConfig;
-import com.danielremsburg.archinex.storage.CloudStorage;
+import com.danielremsburg.archinex.storage.LocalStorage;
+import com.danielremsburg.archinex.storage.Storage;
 import com.danielremsburg.archinex.storage.S3CloudStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,11 +15,23 @@ public class ArchinexDaemon {
 
     private static final Logger logger = LoggerFactory.getLogger(ArchinexDaemon.class);
 
-    private final CloudStorage cloudStorage;
+    private final Storage storage;
     private final Path directoryToMonitor;
 
     public ArchinexDaemon(ArchinexConfig config) {
-        this.cloudStorage = new S3CloudStorage(config); // Use the S3CloudStorage implementation
+        // Select storage type based on configuration
+        String storageType = config.getString("storage.type");
+
+        if ("local".equalsIgnoreCase(storageType)) {
+            this.storage = new LocalStorage(config); // Initialize LocalStorage
+            logger.info("Using local storage at: {}", config.getString("storage.local.directoryToMonitor"));
+        } else if ("s3".equalsIgnoreCase(storageType)) {
+            this.storage = new S3CloudStorage(config); // Initialize S3CloudStorage
+            logger.info("Using S3 cloud storage.");
+        } else {
+            throw new IllegalArgumentException("Unknown storage type: " + storageType); // Handle invalid config
+        }
+
         this.directoryToMonitor = Paths.get(config.getString("storage.local.directoryToMonitor"));
     }
 
@@ -66,13 +79,15 @@ public class ArchinexDaemon {
             UUID fileUUID = UUID.randomUUID(); // Generate a new UUID for this file
 
             byte[] fileData = Files.readAllBytes(filePath);
-            cloudStorage.store(fileUUID, fileData, null); // Store the file in cloud storage
+            storage.store(fileUUID, fileData, null); // Use the generic storage interface to store the file
 
-            logger.info("File {} stored in cloud with UUID: {}", filePath.getFileName(), fileUUID);
+            logger.info("File {} stored with UUID: {}", filePath.getFileName(), fileUUID);
 
-            // Optionally delete the local file after storing in cloud (if desired)
-            Files.delete(filePath);
-            logger.info("Local file {} deleted after cloud upload.", filePath.getFileName());
+            // Optionally delete the local file after storing (if desired)
+            if (storage instanceof LocalStorage) {
+                Files.delete(filePath);
+                logger.info("Local file {} deleted after storage.", filePath.getFileName());
+            }
 
         } catch (IOException e) {
             logger.error("Error handling file {}: {}", filePath.getFileName(), e.getMessage(), e);
