@@ -1,0 +1,47 @@
+# Ignore build output directories
+/target/
+/bin/
+/out/
+
+# Ignore IDE and editor-specific files
+.vscode/
+.idea/
+*.iml
+
+# Ignore Maven files (if using Maven)
+.mvn/
+target/
+
+# Ignore Gradle files (if using Gradle)
+.gradle/
+/build/
+
+# Ignore OS-specific files
+.DS_Store      # macOS
+Thumbs.db      # Windows
+
+# Ignore log files
+*.log
+
+# Ignore compiled class files
+*.class
+
+# Ignore JAR files (generated from compiled code)
+*.jar
+
+# Ignore test output
+/test-classes/
+/test-output/
+
+# Ignore Eclipse metadata
+.project
+.classpath
+.settings/
+
+# Ignore IntelliJ IDEA project files
+*.iws
+*.iml
+.idea/
+
+# Ignore global gitignore and exclude files
+*.swp      # vim swap files
