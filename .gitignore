@@ -45,3 +45,7 @@ Thumbs.db      # Windows
 
 # Ignore global gitignore and exclude files
 *.swp      # vim swap files
+target/archinex-daemon-1.0-SNAPSHOT.jar
+target/archinex-daemon-1.0-SNAPSHOT.jar.original
+target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst
+target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst

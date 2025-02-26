@@ -1,3 +1,4 @@
+/home/nexen/projects/archinex/archinex-daemon/src/main/java/com/danielremsburg/archinex/retention/RetentionAction.java
 /home/nexen/projects/archinex/archinex-daemon/src/main/java/com/danielremsburg/archinex/plan/StoreAction.java
 /home/nexen/projects/archinex/archinex-daemon/src/main/java/com/danielremsburg/archinex/plan/DecisionMaker.java
 /home/nexen/projects/archinex/archinex-daemon/src/main/java/com/danielremsburg/archinex/storage/CloudStorage.java
@@ -12,13 +13,14 @@
 /home/nexen/projects/archinex/archinex-daemon/src/main/java/com/danielremsburg/archinex/plan/DataTransformationAction.java
 /home/nexen/projects/archinex/archinex-daemon/src/main/java/com/danielremsburg/archinex/journal/MemoryJournal.java
 /home/nexen/projects/archinex/archinex-daemon/src/main/java/com/danielremsburg/archinex/cache/Cache.java
+/home/nexen/projects/archinex/archinex-daemon/src/main/java/com/danielremsburg/archinex/storage/S3CloudStorage.java
 /home/nexen/projects/archinex/archinex-daemon/src/main/java/com/danielremsburg/archinex/retention/BasicRetentionPolicy.java
 /home/nexen/projects/archinex/archinex-daemon/src/main/java/com/danielremsburg/archinex/plan/DeleteAction.java
-/home/nexen/projects/archinex/archinex-daemon/src/main/java/com/danielremsburg/archinex/storage/AWSS3Storage.java
 /home/nexen/projects/archinex/archinex-daemon/src/main/java/com/danielremsburg/archinex/plan/Decision.java
 /home/nexen/projects/archinex/archinex-daemon/src/main/java/com/danielremsburg/archinex/plan/RetrieveAction.java
 /home/nexen/projects/archinex/archinex-daemon/src/main/java/com/danielremsburg/archinex/metadata/MetadataStoreException.java
 /home/nexen/projects/archinex/archinex-daemon/src/main/java/com/danielremsburg/archinex/metadata/FileMetadata.java
+/home/nexen/projects/archinex/archinex-daemon/src/main/java/com/danielremsburg/archinex/retention/RetentionRule.java
 /home/nexen/projects/archinex/archinex-daemon/src/main/java/com/danielremsburg/archinex/retention/RetentionPolicy.java
 /home/nexen/projects/archinex/archinex-daemon/src/main/java/com/danielremsburg/archinex/core/Planner.java
 /home/nexen/projects/archinex/archinex-daemon/src/main/java/com/danielremsburg/archinex/cache/CacheException.java
@@ -28,6 +30,7 @@
 /home/nexen/projects/archinex/archinex-daemon/src/main/java/com/danielremsburg/archinex/plan/PlanExecutor.java
 /home/nexen/projects/archinex/archinex-daemon/src/main/java/com/danielremsburg/archinex/journal/Journal.java
 /home/nexen/projects/archinex/archinex-daemon/src/main/java/com/danielremsburg/archinex/cache/RedisCache.java
+/home/nexen/projects/archinex/archinex-daemon/src/main/java/com/danielremsburg/archinex/storage/LocalStorageSystem.java
 /home/nexen/projects/archinex/archinex-daemon/src/main/java/com/danielremsburg/archinex/cache/MemoryCache.java
 /home/nexen/projects/archinex/archinex-daemon/src/main/java/com/danielremsburg/archinex/metadata/MetadataStore.java
 /home/nexen/projects/archinex/archinex-daemon/src/main/java/com/danielremsburg/archinex/journal/FileJournal.java
