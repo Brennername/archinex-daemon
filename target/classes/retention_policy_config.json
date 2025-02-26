@@ -1,0 +1,44 @@
+{
+    "policies": [
+      {
+        "name": "Default Policy",
+        "description": "Deletes files after a specified age.",
+        "rules": [
+          {
+            "type": "age",
+            "unit": "days",
+            "value": 365
+          }
+        ]
+      },
+      {
+        "name": "Archive Policy",
+        "description": "Archives files older than 90 days, deletes after 7 years.",
+        "rules": [
+          {
+            "type": "age",
+            "unit": "days",
+            "value": 90,
+            "action": "archive" 
+          },
+          {
+            "type": "age",
+            "unit": "years",
+            "value": 7,
+            "action": "delete"
+          }
+        ]
+      },
+      {
+        "name": "Immediate Delete Policy",
+        "description": "For testing; deletes files immediately.",
+        "rules": [
+          {
+            "type": "age",
+            "unit": "seconds",
+            "value": 0
+          }
+        ]
+      }
+    ]
+  }

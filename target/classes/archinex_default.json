@@ -1,0 +1,19 @@
+{
+    "journal.file.path": "~/.archinex/data/journal/journal.log",
+    "retention.policy.config.path": "~/.archinex/config/retention_policy_config.json",
+    "cache.config.path": "~/.archinex/config/cache_config.json",
+    "storage.type": "local",
+    "storage.local.path": "~/.archinex/data/storage",
+    "metadata.store.type": "postgres",
+    "postgres.jdbcUrl": "jdbc:postgresql://localhost:5432/archinex",
+    "postgres.username": "archinex_user",
+    "postgres.password": "archinex_password",
+    "journal.type": "file",
+    "retention.policy.type": "basic",
+    "cache.type": "memory",
+    "cache.maxSize": 1024,
+    "planner.threadPoolSize": 4,
+    "policyEngine.interval": 3600,
+    "api.port": 9876,
+    "api.host": "localhost"
+  }
