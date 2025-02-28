@@ -38,19 +38,22 @@ public class ArchinexConfig {
             logger.error("Error reading configuration file: {}", configFile, e);
             throw e; // Re-throw after logging
         }
+        // Expand the paths with ~ after reading the config
+        expandTildeInPaths();
     }
 
     private void createDirectoriesAndCopyDefaultConfig() throws IOException {
         try {
-            // Create directories
+            // Create necessary directories if they do not exist
             Files.createDirectories(Paths.get(ARCHINEX_HOME, "config"));
             Files.createDirectories(Paths.get(ARCHINEX_HOME, "data", "metadata"));
             Files.createDirectories(Paths.get(ARCHINEX_HOME, "data", "journal"));
             Files.createDirectories(Paths.get(ARCHINEX_HOME, "data", "cache"));
             Files.createDirectories(Paths.get(ARCHINEX_HOME, "data", "storage"));
+            Files.createDirectories(Paths.get(ARCHINEX_HOME, "data", "toMonitor"));
             Files.createDirectories(Paths.get(ARCHINEX_HOME, "logs"));
 
-            // Copy default config if it doesn't exist
+            // Copy the default config if it doesn't exist
             Path configFile = Paths.get(ARCHINEX_HOME, "config", "archinex.json");
             if (!Files.exists(configFile)) {
                 try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(DEFAULT_CONFIG_FILE)) {
@@ -66,7 +69,37 @@ public class ArchinexConfig {
             logger.error("Error creating directories or copying default config: {}", e.getMessage(), e);
             throw e;
         }
+    }
 
+    private void expandTildeInPaths() {
+        // Traverse all keys in the config and expand ~ if it exists
+        for (String key : config.keySet()) {
+            JsonElement element = config.get(key);
+            if (element != null && element.isJsonPrimitive() && element.getAsString().contains("~")) {
+                String value = element.getAsString();
+                // Expand the ~ to the user's home directory
+                value = value.replace("~", System.getProperty("user.home"));
+                config.addProperty(key, value);
+            } else if (element != null && element.isJsonObject()) {
+                // Recursively expand in nested objects
+                expandTildeInJsonObject(element.getAsJsonObject());
+            }
+        }
+    }
+
+    private void expandTildeInJsonObject(JsonObject jsonObject) {
+        for (String key : jsonObject.keySet()) {
+            JsonElement element = jsonObject.get(key);
+            if (element != null && element.isJsonPrimitive() && element.getAsString().contains("~")) {
+                String value = element.getAsString();
+                // Expand the ~ to the user's home directory
+                value = value.replace("~", System.getProperty("user.home"));
+                jsonObject.addProperty(key, value);
+            } else if (element != null && element.isJsonObject()) {
+                // Recursively expand in nested objects
+                expandTildeInJsonObject(element.getAsJsonObject());
+            }
+        }
     }
 
     public String getString(String path) {
@@ -129,6 +162,7 @@ public class ArchinexConfig {
         return current;
     }
 
+    // Getter methods for specific config fields:
     public String getStorageType() {
         return getStringOrDefault("storage.type", "local");
     }
@@ -200,7 +234,7 @@ public class ArchinexConfig {
     public int getApiPort() {
         return getIntOrDefault("api.port", 9876);
     }
-    
+
     public String getApiHost() {
         return getStringOrDefault("api.host", "localhost");
     }

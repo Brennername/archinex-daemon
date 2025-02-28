@@ -52,14 +52,34 @@ public class RetrieveAction implements Action {
 
     /**
      * Process the retrieved data as part of the execute method. This can be customized further.
-     * For now, let's assume we just log the retrieved data length.
+     * Default just log the retrieved data length.
      */
-    private void processRetrievedData(byte[] retrievedData) {
+    public void processRetrievedData(byte[] retrievedData) {
         if (retrievedData != null) {
             logger.info("Data retrieved successfully, length: {}", retrievedData.length);
-            // You can add additional processing logic here if needed.
+            // Default processing - log and move on
+            logger.info("Default processing: Data length logged.");
         } else {
             logger.error("Failed to retrieve data: No data found.");
         }
     }
+
+
+     // Method to inverts control (allowing client-provided processing)
+     public void processRetrievedData(byte[] retrievedData, Consumer<byte[]> clientProcessor) {
+        if (retrievedData != null) {
+            logger.info("Data retrieved successfully, length: {}", retrievedData.length);
+
+            // Default processing (your existing logic)
+            logger.info("Default processing: Data length logged.");
+
+            // Client-provided processing (if any)
+            if (clientProcessor != null) {
+                clientProcessor.accept(retrievedData);
+            }
+        } else {
+            logger.error("Failed to retrieve data: No data found.");
+        }
+    }
+
 }

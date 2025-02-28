@@ -1,0 +1,18 @@
+<configuration>
+
+    <!-- Root logger set to TRACE to show all log levels -->
+    <root level="TRACE">
+        <appender-ref ref="STDOUT" />
+    </root>
+
+    <!-- Set specific logger for your classes to TRACE for more detailed logs -->
+    <logger name="com.danielremsburg.archinex" level="TRACE" />
+
+    <!-- Console appender -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.layout.PatternLayout">
+            <Pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</Pattern>
+        </layout>
+    </appender>
+
+</configuration>

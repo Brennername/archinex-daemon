@@ -15,6 +15,7 @@ public class DecisionMaker implements Decision {
 
     @Override
     public Plan choosePlan(FileMetadata metadata) {
+        // default 1024 * 1024 = 1G
         long fileSizeThreshold = config.getLongPropertyOrDefault("plan.fileSizeThreshold", 1024 * 1024);
 
         if (metadata.getSize() > fileSizeThreshold) {
